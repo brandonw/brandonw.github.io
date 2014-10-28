@@ -22,16 +22,23 @@
 	<div>
 		Tags:
 		{% for tag in article.tags %}
-		<span itemprop="keywords">
-			<a href="{{ SITEURL }}/{{ tag.url }}" rel="tag">{{ tag }}</a>
-		</span>
+        <span itemprop="keywords">
+            {% if loop.last %}
+            <a href="{{ SITEURL }}/{{ tag.url }}" rel="tag">{{ tag }}</a>
+            {% else %}
+            <a href="{{ SITEURL }}/{{ tag.url }}" rel="tag">{{ tag }}</a>,
+            {% endif %}
+        </span>
 		{% endfor %}
 	</div>
 	{% endif %}
 	<div itemprop="articleBody" class="article-body">{{ article.content }}</div>
 	<hr>
+    {% include 'twitter.html' %}<br />
+    {% include 'reddit.html' %}<br />
+    {% if DISQUS_SITENAME %}
 	<h2>Comments</h2>
-	{% include "twitter.html" %}
 	{% include 'disqus.html' %}
+    {% endif %}
 </div>
 {% endblock %}

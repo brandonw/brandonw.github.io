@@ -23,7 +23,11 @@
 	{% if article.tags %}
 	{% for tag in article.tags %}
 	<span itemprop="keywords">
+        {% if loop.last %}
 		<a href="{{ SITEURL }}/{{ tag.url }}" rel="tag">{{ tag }}</a>
+        {% else %}
+		<a href="{{ SITEURL }}/{{ tag.url }}" rel="tag">{{ tag }}</a>,
+        {% endif %}
 	</span>
 	{% endfor %}
 	{% endif %}
