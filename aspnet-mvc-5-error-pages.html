@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>ASP.NET MVC 5 Error Pages — Brandon Waskiewicz</title>
+	<meta name="description" content="Title: ASP.NET MVC 5 Error Pages; Date: 2014-10-28; Author: Brandon Waskiewicz">
+	<meta name="author" content="Brandon Waskiewicz">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+	<!--[if lt IE 9]>
+		<script src="http://brandonw.github.io/theme/html5.js"></script>
+		<![endif]-->
+	<link href="http://brandonw.github.io/theme/css/ipython.css" rel="stylesheet">
+	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+	<link href="//maxcdn.bootstrapcdn.com/bootswatch/3.2.0/simplex/bootstrap.min.css" rel="stylesheet">
+	<link href="http://brandonw.github.io/theme/css/local.css" rel="stylesheet">
+	<link href="http://brandonw.github.io/theme/css/pygments.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+	<div class="page-header">
+		<h1><a href="http://brandonw.github.io">Brandon Waskiewicz</a>
+            <br><small>Blog</small></h1>
+	</div>
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+<div class="article" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="text-center article-header">
+		<h1 itemprop="name headline" class="article-title">ASP.NET MVC 5 Error Pages</h1>
+		<span itemprop="author" itemscope itemtype="http://schema.org/Person">
+			<h4 itemprop="name">Brandon Waskiewicz</h4>
+		</span>
+		<time datetime="2014-10-28T20:15:00" itemprop="datePublished">Tue 28 October 2014</time>
+	</div>
+	<div>
+		Category:
+		<span itemprop="articleSection">
+			<a href="http://brandonw.github.io/category/windows.html" rel="category">Windows</a>
+		</span>
+	</div>
+	<div>
+		Tags:
+        <span itemprop="keywords">
+            <a href="http://brandonw.github.io/tag/aspnet-mvc.html" rel="tag">aspnet mvc</a>,
+        </span>
+        <span itemprop="keywords">
+            <a href="http://brandonw.github.io/tag/errors.html" rel="tag">errors</a>
+        </span>
+	</div>
+	<div itemprop="articleBody" class="article-body"><h3>Introduction</h3>
+<p>The default configuration for errors in ASP.NET MVC leaves a lot to be desired.
+There is an error attribute that handles redirecting any errors thrown by an
+action method, but this constrains you to handling everything in a single view.
+It also feels (subjectively) to be more magic, instead of allowing you to
+describe everything explicitly. In this post, I  will detail how I set up error
+handling in a way that is both flexible and easy to understand.</p>
+<h3>Getting Started: Outside of ASP.NET</h3>
+<p>The first step you must do is to make sure you have handled anything that
+occurs <em>outside</em> of the ASP.NET pipeline. If an error occurs while IIS is
+processing a request, but it does not occur inside of the ASP.NET pipeline,
+then the configuration specified in the httpErrors tag in the server's
+web.config is what describes the error behaviour. Inside your web.config's
+<code>system.webServer</code> tag (direct child of the <code>configuration</code> tag),
+configure the <code>httpErrors</code> tag:</p>
+<div class="highlight"><pre><span class="nt">&lt;httpErrors</span> <span class="na">errorMode=</span><span class="s">&quot;DetailedLocalOnly&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/httpErrors&gt;</span>
+</pre></div>
+
+
+<p>This will configure the behaviour for HTTP errors occuring in IIS to only be
+used when the client is not local. This means that while you are developing on
+your local machine, you will still receive the default detailed error messages.
+If you make a request from a non-local client, however, then the configuration
+specified will be used instead.</p>
+<p>Now, add the configuration for the errors you want to customize as child tags
+of the <code>httpErrors</code> tag:</p>
+<div class="highlight"><pre><span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;error</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="na">path=</span><span class="s">&quot;404.html&quot;</span> <span class="na">responseMode=</span><span class="s">&quot;File&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;500&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;error</span> <span class="na">statusCode=</span><span class="s">&quot;500&quot;</span> <span class="na">path=</span><span class="s">&quot;500.html&quot;</span> <span class="na">responseMode=</span><span class="s">&quot;File&quot;</span> <span class="nt">/&gt;</span>
+</pre></div>
+
+
+<p>What this does is to remove any existing error handling for both 404 and 500
+errors which may have been set up at a higher level configuration file (like
+the user-level or machine-level config). After removing any existing
+configuration, it adds a fresh entry to the configuration, specifying the html
+page and response mode for the given error. The <code>responseMode</code> attribute
+value  of <strong>File</strong> tells the IIS server to rewrite the response with the
+contents of the specified file. This is important to do, in order to maintain
+the original request URL. It would be confusing to send a request to
+<code>/foo/bar</code>, encounter a 404 error, and then be redirected to
+<code>/404.html</code>.  Not only will the user see a URL they did not request, but
+the original URL will be lost.</p>
+<p>The <code>404.html</code> and <code>500.html</code> files should be saved in your project
+root, not in your <code>Views</code> directory. IIS may have trouble finding them if
+you save them elsewhere.</p>
+<p>The final configuration should look something like this:</p>
+<div class="highlight"><pre><span class="nt">&lt;httpErrors</span> <span class="na">errorMode=</span><span class="s">&quot;DetailedLocalOnly&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;error</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="na">path=</span><span class="s">&quot;404.html&quot;</span> <span class="na">responseMode=</span><span class="s">&quot;File&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;500&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;error</span> <span class="na">statusCode=</span><span class="s">&quot;500&quot;</span> <span class="na">path=</span><span class="s">&quot;500.html&quot;</span> <span class="na">responseMode=</span><span class="s">&quot;File&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/httpErrors&gt;</span>
+</pre></div>
+
+
+<p>What you must note here, is that the error is handled <strong>outside</strong> of ASP.NET.
+This means you do not have access to any view engine for templating, nor do you
+have any session data (authentication, authorization, cookies, etc.). This
+error page must be a simple html page. Ideally, the client will never see this
+page. However, you want to have something that will mesh well with the theme of
+your site in the rare chance that a client does end up seeing it. If you do not
+set this up, then the default error page will be rendered.</p>
+<h3>Clearing Defaults: Remove the Error Attribute</h3>
+<p>ASP.NET projects come pre-configured with default error handling via the
+<code>HandleErrorAttribute</code> and the <code>Error.cshtml</code> view. Remove the addition
+of a new <code>HandleErrorAttribute</code> instance to the global filter collection in
+your <code>RegisterGlobalFilters</code> method of <code>FilterConfig.cs</code>. This will
+prevent any exceptions thrown from your controller actions from being handled
+by the <code>HandleErrorAttribute</code>. You can now remove <code>Error.cshtml</code> from
+your Views/Shared folder as well.</p>
+<h3>ASP.NET Error Configuration</h3>
+<p>Back in the web.config of your project, you must enable custom errors in the
+ASP.NET pipeline:</p>
+<div class="highlight"><pre><span class="nt">&lt;customErrors</span> <span class="na">mode=</span><span class="s">&quot;RemoteOnly&quot;</span><span class="nt">&gt;&lt;/customErrors&gt;</span>
+</pre></div>
+
+
+<p>This little snippet is similar to the IIS configuration. It tells ASP.NET that
+custom errors are enabled, but should only be used when the client is not
+local. The <code>customErrors</code> element also allows you to configure individual
+error pages, similarly to the <code>httpErrors</code> tag above. However, we will be
+using a much more flexible mechanism.</p>
+<h3>Configuring Error Behaviour</h3>
+<p>The next step is to configure the steps ASP.NET should take when an
+<code>HTTPException</code> is thrown. To begin, open up your project's
+<code>Global.asax.cs</code> file, and add a stub <code>Application_Error</code> method:</p>
+<div class="highlight"><pre><span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Error</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
+<span class="p">{</span>
+
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This method is called any time an exception is thrown by an action in one of
+your controllers, and will be the primary mechanism by which we control what
+the client sees when an error is encountered.</p>
+<p>The first step we must take in this method is to check if custom errors are
+enabled.</p>
+<div class="highlight"><pre><span class="kt">var</span> <span class="n">app</span> <span class="p">=</span> <span class="p">(</span><span class="n">MvcApplication</span><span class="p">)</span><span class="n">sender</span><span class="p">;</span>
+<span class="kt">var</span> <span class="n">context</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Context</span><span class="p">;</span>
+
+<span class="k">if</span> <span class="p">(!</span><span class="n">context</span><span class="p">.</span><span class="n">IsCustomErrorEnabled</span><span class="p">)</span>
+    <span class="k">return</span><span class="p">;</span>
+</pre></div>
+
+
+<p>If they are not enabled, we do not want to take any further action. The error
+will continue and eventually render the familiar detailed error page. If custom
+errors are enabled, we want to get the error, and then clear the context's
+response.</p>
+<div class="highlight"><pre><span class="kt">var</span> <span class="n">ex</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Server</span><span class="p">.</span><span class="n">GetLastError</span><span class="p">();</span>
+<span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">Clear</span><span class="p">();</span>
+<span class="n">context</span><span class="p">.</span><span class="n">ClearError</span><span class="p">();</span>
+</pre></div>
+
+
+<p>This takes any existing response (namely, the default detailed error page), and
+clears it from the context. There is now a clean slate to work with, and we can
+get to the routing:</p>
+<div class="highlight"><pre><span class="kt">var</span> <span class="n">httpException</span> <span class="p">=</span> <span class="n">ex</span> <span class="k">as</span> <span class="n">HttpException</span><span class="p">;</span>
+<span class="kt">var</span> <span class="n">routeData</span> <span class="p">=</span> <span class="k">new</span> <span class="n">RouteData</span><span class="p">();</span>
+<span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;controller&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;Error&quot;</span><span class="p">;</span>
+<span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;exception&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="n">ex</span><span class="p">;</span>
+<span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;action&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;InternalServerError&quot;</span><span class="p">;</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">httpException</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">httpException</span><span class="p">.</span><span class="n">GetHttpCode</span><span class="p">())</span>
+    <span class="p">{</span>
+        <span class="k">case</span> <span class="m">403</span><span class="p">:</span>
+            <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;action&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;Forbidden&quot;</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="m">404</span><span class="p">:</span>
+            <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;action&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;NotFound&quot;</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="m">500</span><span class="p">:</span>
+            <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;action&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;InternalServerError&quot;</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">IController</span> <span class="n">controller</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ErrorController</span><span class="p">();</span>
+<span class="n">controller</span><span class="p">.</span><span class="n">Execute</span><span class="p">(</span><span class="k">new</span> <span class="n">RequestContext</span><span class="p">(</span><span class="k">new</span> <span class="n">HttpContextWrapper</span><span class="p">(</span><span class="n">context</span><span class="p">),</span> <span class="n">routeData</span><span class="p">));</span>
+</pre></div>
+
+
+<p>First, the exception is cast into an HttpException, and saved for later.  Then,
+the default routing behaviour is set. I use an <code>Error</code> controller, with
+several actions defined therein. The default action is to use the 500 error,
+which I map to the <code>InternalServerError</code> action. I also add the exception
+to the route data in case I want to use it in the controller action.</p>
+<p>Then the exception is checked. If it is not an <code>HttpException</code>, then the
+default action of <code>InternalServerError</code> is executed. If the exception
+<strong>is</strong> an <code>HttpException</code>, then the the HTTP code can be conditionally
+tested against. I have specified a total of three actions in my controller, but
+you can add however many you like.</p>
+<p>In the end, your <code>Application_Error</code> method should look something like
+ this:</p>
+<div class="highlight"><pre><span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Error</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">var</span> <span class="n">app</span> <span class="p">=</span> <span class="p">(</span><span class="n">MvcApplication</span><span class="p">)</span><span class="n">sender</span><span class="p">;</span>
+    <span class="kt">var</span> <span class="n">context</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Context</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(!</span><span class="n">context</span><span class="p">.</span><span class="n">IsCustomErrorEnabled</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">;</span>
+
+    <span class="kt">var</span> <span class="n">ex</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Server</span><span class="p">.</span><span class="n">GetLastError</span><span class="p">();</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">Clear</span><span class="p">();</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">ClearError</span><span class="p">();</span>
+
+    <span class="kt">var</span> <span class="n">httpException</span> <span class="p">=</span> <span class="n">ex</span> <span class="k">as</span> <span class="n">HttpException</span><span class="p">;</span>
+    <span class="kt">var</span> <span class="n">routeData</span> <span class="p">=</span> <span class="k">new</span> <span class="n">RouteData</span><span class="p">();</span>
+    <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;controller&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;Error&quot;</span><span class="p">;</span>
+    <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;exception&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="n">ex</span><span class="p">;</span>
+    <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;action&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;InternalServerError&quot;</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">httpException</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">httpException</span><span class="p">.</span><span class="n">GetHttpCode</span><span class="p">())</span>
+        <span class="p">{</span>
+            <span class="k">case</span> <span class="m">403</span><span class="p">:</span>
+                <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;action&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;Forbidden&quot;</span><span class="p">;</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="m">404</span><span class="p">:</span>
+                <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;action&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;NotFound&quot;</span><span class="p">;</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="m">500</span><span class="p">:</span>
+                <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;action&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;InternalServerError&quot;</span><span class="p">;</span>
+                <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">IController</span> <span class="n">controller</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ErrorController</span><span class="p">();</span>
+    <span class="n">controller</span><span class="p">.</span><span class="n">Execute</span><span class="p">(</span><span class="k">new</span> <span class="n">RequestContext</span><span class="p">(</span><span class="k">new</span> <span class="n">HttpContextWrapper</span><span class="p">(</span><span class="n">context</span><span class="p">),</span> <span class="n">routeData</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>If you want additional routing data to be sent to the action, then you have all
+the power of C# at your disposal. For instance, you could subclass
+<code>HttpException</code> to have a new 404 exception class that tracks the type of
+entity that was not found. A customized 404 page for each entity in your
+application would be an easy step from here.</p>
+<h3>Your Custom Error Templates</h3>
+<p>Your error templates can now be made. If you used my routing configuration
+above, then create a new controller named <code>Error</code>, and add action methods
+according to the actions defined in your <code>Application_Error</code> method. Add
+view templates that will be rendered according to your action methods, and you
+should be good to go. The best part about this setup is that there is no magic!
+The controller, actions, and templates are all exactly the same as any other in
+your application. You do not have to worry about any special cases.</p>
+<h3>How to Handle Errors In Your Code</h3>
+<p>Now that everything is configured, whenever you receive a request for an action
+with an ID that is not found, you can
+ <code>throw new HttpException(404, "Foo entity not found.");</code>, and everything
+will be handled for you. If a client tries to reach an action they should not
+have access to, you can <code>throw new HttpException(403, "Forbidden");</code>. Any
+other error that is thrown will be handled as an internal server error, and the
+server will render the appropriate response.</p>
+<h3>Adding a Catch-All Not Found Route</h3>
+<p>The previously mentioned way to handle 404 errors will work in any case where
+the controller exists. However, what if the client requests a URL that does not
+match any of your controllers? In this case, ASP.NET sees no route that matches
+in its routing table, so it would let the request percolate back up to IIS.
+You will probably not have anything set up to handle the request in IIS, so
+this is where your previously configured IIS error pages would normally come
+in. However, we would rather avoid that, if possible.  This is easily fixed by
+adding a catch-all route to the routing table in your RouteConfig.cs. After all
+existing <code>MapRoute</code> calls, add:</p>
+<div class="highlight"><pre><span class="n">routes</span><span class="p">.</span><span class="n">MapRoute</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&quot;404&quot;</span><span class="p">,</span>
+    <span class="n">url</span><span class="p">:</span> <span class="s">&quot;{*url}&quot;</span><span class="p">,</span>
+    <span class="n">defaults</span><span class="p">:</span> <span class="k">new</span> <span class="p">{</span> <span class="n">controller</span> <span class="p">=</span> <span class="s">&quot;Error&quot;</span><span class="p">,</span> <span class="n">action</span> <span class="p">=</span> <span class="s">&quot;CatchAllAction&quot;</span> <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+
+
+<p>This will define a catch-all route that is only matched if no other route you
+defined matches the request. Note that the action is set to
+<code>CatchAllAction</code>. This could just as easily use the existing NotFound
+action, if you do not care to distinguish between an object not being found
+and a route not being recognized.</p>
+<h3>Carry On!</h3>
+<p>You now have an easily understood and flexible error handling process. Carry on
+with your web application without worrying about how you are going to handle
+errors down the road.</p></div>
+	<hr>
+<a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+<br />
+<script type="text/javascript" src="//www.redditstatic.com/button/button1.js"></script><br />
+	<h2>Comments</h2>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'brandons-blog'; 
+    var disqus_title = 'ASP.NET MVC 5 Error Pages';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+		</div>
+	</div> 	<!-- <hr> -->
+</div> <!-- /container -->
+<footer class="aw-footer bg-danger">
+	<div class="container"> <!-- footer -->
+		<div class="row">
+			<div class="col-md-10 col-md-offset-1">
+				<div class="row">
+					<div class="col-md-4">
+						<h4>Blog</h4>
+						<ul class="list-unstyled my-list-style">
+                            <li><a href="http://brandonw.github.io"><i class="fa fa-book"></i> Home</a></li>
+                            <li><a href="http://brandonw.github.io/tags.html"><i class="fa fa-tags"></i> Tags</a></li>
+                            <li><a href="http://brandonw.github.io/archives.html"><i class="fa fa-archive"></i> Archives</a></li>
+                            <li><a href="http://brandonw.github.io/feeds/rss.xml"><i class="fa fa-rss "></i> rss</a></li>
+                            <li><a href="http://brandonw.github.io/feeds/atom.xml"><i class="fa fa-rss"></i> atom</a></li>
+						</ul>
+					</div>
+					<div class="col-md-4">
+						<h4>Author</h4>
+						<ul class="list-unstyled my-list-style">
+                            <li><a href="http://github.com/brandonw"><i class="fa fa-github"></i> Github</a></li>
+                            <li><a href="http://brandonw.github.io/pdfs/resume.pdf"><i class="fa fa-file-pdf-o"></i> Resum&#233;</a></li>
+						</ul>
+					</div>
+					<div class="col-md-4">
+						<h4>Categories</h4>
+						<ul class="list-unstyled my-list-style">
+                            <li><a href="http://brandonw.github.io/category/windows.html">Windows (1)</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</footer>
+<div class="container">
+	<div class="row">
+		<div class="col-md-12 text-center center-block aw-bottom">
+			<p>&copy; Brandon Waskiewicz 2014</p>
+            <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a>. Theme by <a href="http://blog.aboutwilson.net/">Wilson Freitas</a>.</p>
+		</div>
+	</div>
+</div>
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+	$("div.collapseheader").click(function () {
+		$header = $(this).children("span").first();
+		$codearea = $(this).children(".input_area");
+		$codearea.slideToggle(500, function () {
+			$header.text(function () {
+				return $codearea.is(":visible") ? "Collapse Code" : "Expand Code";
+			});
+		});
+	});
+});
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-56105941-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+</html>
