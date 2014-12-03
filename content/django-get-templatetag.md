@@ -3,6 +3,7 @@ Date: 2014-12-02 19:45
 Category: Django
 Tags: django, template tags
 Summary: Creating a template tag that preserves GET parameters
+Status: draft
 
 ### The Problem ###
 
