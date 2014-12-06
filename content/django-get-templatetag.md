@@ -24,8 +24,10 @@ https://djangosnippets.org/snippets/1627/</a>
 To be clear, the above problem isn't insurmountable. For example, if you have a
 Django template that assumes a context with:
 
-* a <a href="https://docs.djangoproject.com/en/dev/topics/pagination/#page-objects">page</a>
-object named ```page_obj``` (paired with the ```GET``` param of ```page```)
+* a
+<a href="https://docs.djangoproject.com/en/dev/topics/pagination/#page-objects">
+page</a> object named ```page_obj``` (paired with the ```GET``` param of
+```page```)
 * the filter constraint as ```filter``` (paired with the ```GET``` param of
 ```filter```)
 * the sort constraint as ```sort``` (paired with the ```GET``` param of
@@ -34,7 +36,9 @@ object named ```page_obj``` (paired with the ```GET``` param of ```page```)
 then you could do something like:
 
     :::django
-    <a href="?page={{ page_obj.next_page_number }}&filter={{ filter }}&sort={{ sort }}">next</a>
+    <a href="?page={{ page_obj.next_page_number }}&filter={{ filter }}&sort={{ sort }}">
+        next
+    </a>
 
 This would work, however it requires you to not only know what all of the
 potential ```GET``` params are for the paginated view, but also what their
@@ -47,12 +51,12 @@ request.
 
 The way we will reduce the work required for this repetitive task is to use a
 Django
-<a href="https://docs.djangoproject.com/en/dev/howto/custom-template-tags/">template
-tag</a>. The first thing you must do is choose which Django app the template
-tag lives inside of. If you only need to use this tag inside of a single app,
-then you can put it inside of that app's directory. Otherwise, feel free to
-make a dedicated app for shareable code. The only requirement to use this
-template tag is that the app it is defined in is included in the
+<a href="https://docs.djangoproject.com/en/dev/howto/custom-template-tags/">
+template tag</a>. The first thing you must do is choose which Django app the
+template tag lives inside of. If you only need to use this tag inside of a
+single app, then you can put it inside of that app's directory. Otherwise, feel
+free to make a dedicated app for shareable code. The only requirement to use
+this template tag is that the app it is defined in is included in the
 ```INSTALLED_APPS``` config tuple.
 
 Create a directory named ```templatetags``` inside of your chosen app, create
@@ -70,3 +74,57 @@ This readies you to create a custom template tag via Django's template module.
 ### Digging Deeper ###
 
 
+
+
+
+
+### The Final Product ###
+
+    :::python
+    from django import template
+
+    register = template.Library()
+
+    """
+    Decorator to facilitate template tag creation
+    """
+    def easy_tag(func):
+        """deal with the repetitive parts of parsing template tags"""
+        def inner(parser, token):
+            #print token
+            try:
+                return func(*token.split_contents())
+            except TypeError:
+                raise template.TemplateSyntaxError(
+                    'Bad arguments for tag "%s"' % token.split_contents()[0])
+        inner.__name__ = func.__name__
+        inner.__doc__ = inner.__doc__
+        return inner
+
+
+    class AppendGetNode(template.Node):
+        def __init__(self, dict):
+            self.dict_pairs = {}
+            for pair in dict.split(','):
+                pair = pair.split('=')
+                self.dict_pairs[pair[0]] = template.Variable(pair[1])
+
+        def render(self, context):
+            get = context['request'].GET.copy()
+
+            for key in self.dict_pairs:
+                get[key] = self.dict_pairs[key].resolve(context)
+
+            path = context['request'].META['PATH_INFO']
+
+            if len(get):
+                path += "?%s" % "&".join(
+                    ["%s=%s" % (key, value) for (key, value) in get.items() if value])
+
+
+            return path
+
+    @register.tag()
+    @easy_tag
+    def append_to_get(_tag_name, dict):
+        return AppendGetNode(dict)
