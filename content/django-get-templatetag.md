@@ -1,6 +1,6 @@
 Title: GET-preserving Django template tag
 Date: 2014-12-10 21:17
-Category: Django
+Category: Web Development
 Tags: django, template tags
 Summary: Creating a template tag that preserves GET parameters
 

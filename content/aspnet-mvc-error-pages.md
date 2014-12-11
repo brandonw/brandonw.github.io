@@ -1,6 +1,6 @@
 Title: ASP.NET MVC 5 Error Pages
 Date: 2014-10-28 20:15
-Category: Windows
+Category: Web Development
 Tags: aspnet mvc, errors
 Summary: Configuring customizable and correct error pages in ASP.NET MVC
 
