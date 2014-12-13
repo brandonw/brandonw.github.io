@@ -50,9 +50,8 @@
 	</div>
 	<div itemprop="articleBody" class="article-body"><h3>The Problem</h3>
 <p>Giving users a view into a long list of items is a common function. A popular
-way to manage that view is to use Django's built in pagination feature.  This
-feature allows for easy creation of links to different pages of the items via
-the defined GET parameter.</p>
+way to manage that view is to use Django's built in pagination feature, allowing
+links to different pages to be easily created.</p>
 <p>This works well as long as no other GET parameters need to be used in parallel.
 It starts to break down a bit as sorting, filtering, page size, and other
 functions are added.  This post will annotate and explain an elegant fix found
@@ -66,10 +65,9 @@ template with a context containing:</p>
   <a href="https://docs.djangoproject.com/en/dev/topics/pagination/#page-objects">page</a>
   object named <code>page_obj</code> (paired with the GET parameter of
   <code>page</code>)</li>
-<li>a filter constraint as <code>filter</code> (paired with the GET parameter of
+<li>a filter constraint <code>filter</code> (paired with the GET parameter of
   <code>filter</code>)</li>
-<li>a sort constraint as <code>sort</code> (paired with the GET parameter of
-  <code>sort</code>)</li>
+<li>a sort constraint <code>sort</code> (paired with the GET parameter of <code>sort</code>)</li>
 </ul>
 <p>then:</p>
 <div class="highlight"><pre><span class="x">&lt;a href=&quot;?page=</span><span class="cp">{{</span> <span class="nv">page_obj.next_page_number</span> <span class="cp">}}</span><span class="x">&amp;filter=</span><span class="cp">{{</span> <span class="nv">filter</span> <span class="cp">}}</span><span class="x">&amp;sort=</span><span class="cp">{{</span> <span class="nv">sort</span> <span class="cp">}}</span><span class="x">&quot;&gt;</span>
@@ -78,13 +76,12 @@ template with a context containing:</p>
 </pre></div>
 
 
-<p>would work. However, it requires all of the GET parameters to be known,
+<p>will work. However, it requires all of the GET parameters to be known,
 as well as their values. It also would need to be updated any time the possible
 GET parameters change. This is a lot of extra work for something that is
 tangential to the pagination function.</p>
 <h3>The Setup</h3>
-<p>The Django feature with which code repetition will be reduced is called a
-<a href="https://docs.djangoproject.com/en/dev/howto/custom-template-tags/">template
+<p>To lessen the technical burden of pagination, implement a <a href="https://docs.djangoproject.com/en/dev/howto/custom-template-tags/">template
 tag</a>. The
 first thing to do when creating a custom template tag is to decide which app to
 put it in. If the tag is only needed for a single app, then it can be put
@@ -103,8 +100,9 @@ off with:</p>
 
 <p>This sets up the module to implement a Django template tag.</p>
 <h3>A Helping Hand</h3>
-<p>The next step to take is to add a decorator that eases much of the boilerplate
-involved with a tag. It is short and sweet:</p>
+<p>Template tags generally require a bit of boilerplate that does not change much
+across all tags. Make a decorator that reduces the need to worry about this
+boilerplate:</p>
 <div class="highlight"><pre><span class="k">def</span> <span class="nf">easy_tag</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -122,12 +120,12 @@ involved with a tag. It is short and sweet:</p>
 parsing of the tag parameters. The <code>inner</code> function has the signature
 required of a template tag: the two arguments <code>parser</code> and <code>token</code>.</p>
 <p><code>parser</code> will not be used in this tag, so it can be ignored. <code>token</code> is
-the tag in its entirety, as it is called in the template. The inner function
-tries to call the <code>split_contents</code> method of the token, which splits the
-text of the entire tag into space delimited pieces. Note that
-<code>split_contents</code> is used, which takes care to keep quoted strings as a
-single item (as opposed to <code>split</code> which does not).</p>
-<p>For example, the if the template were to call a test tag:</p>
+the tag in its entirety, as it exists in the template. The inner function tries
+to call the <code>split_contents</code> method of the token, which splits the text of
+the entire tag into space delimited pieces. Note that <code>split_contents</code> is
+used, which takes care to keep quoted strings as a single item (as opposed to
+<code>split</code> which does not).</p>
+<p>For example, if the template were to call a test tag:</p>
 <div class="highlight"><pre><span class="cp">{%</span> <span class="k">test</span> <span class="nv">foo</span> <span class="s2">&quot;bar baz&quot;</span> <span class="nv">foo</span> <span class="cp">%}</span><span class="x"></span>
 </pre></div>
 
@@ -148,21 +146,20 @@ easy_tag decorator would handle splitting the args into the pieces</p>
 
 <p>and passing that as the arg list into <code>test</code>. In this case, tag_name would
 be assigned the value <code>test</code>, since that is the first item in the list.
-<code>arg1</code> would be assigned <code>foo</code>, <code>arg2</code> would be assigned
-<code>"bar baz"</code>, and <code>arg3</code> would be assigned <code>foo</code>.  In addition to
-the splitting the tag, the decorator handles catching any errors encountered
-while splitting the tag arguments and throwing the correct
-<code>TemplateSyntaxError</code> exception. It creates a descriptive exception message
-by adding in the tag name, which is always the first item of the list returned
-by <code>split_contents</code>. It also sets the name and documentation string of the
-function being wrapped to the new function created by the decorator in order to
-keep everything consistent.</p>
+<code>arg1</code> would be assigned <code>foo</code>, <code>arg2</code> would be assigned <code>"bar
+baz"</code>, and <code>arg3</code> would be assigned <code>foo</code>.  In addition to splitting
+the tag, the decorator handles catching any errors encountered while executing
+the tag's code, and throwing a <code>TemplateSyntaxError</code> exception. It creates
+a descriptive exception message by adding in the tag name, which is always the
+first item of the list returned by <code>split_contents</code>. It also sets the name
+and documentation string of the function being wrapped to the new function
+created by the decorator in order to keep everything consistent.</p>
 <h3>Parsing the Tag Arguments</h3>
 <p>The next step in creating the tag is to begin implementing the
 <code>template.Node</code> subclass. This will be the meat of the custom tag. A Node
 object is what must be be returned when registering a template tag via
 <code>register.tag</code>. The Node object requires two methods: <code>__init__</code> and
-<code>render</code>. The first step will be to create the <code>__init__</code> method.</p>
+<code>render</code>. The first step will be to create the <code>__init__</code> method:</p>
 <div class="highlight"><pre><span class="k">class</span> <span class="nc">AppendGetNode</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span> <span class="o">=</span> <span class="p">{}</span>
@@ -173,10 +170,10 @@ object is what must be be returned when registering a template tag via
 
 
 <p>The <code>__init__</code> method should handle compiling the tag argument into a
-usable data structure. The method will assume that argument is a
-comma-delimited list of key value pairs, and that each key value pair will be
-separated by an equals sign. It also assumes that each value is a template
-variable, and must be resolved. It uses each key and resolved value to
+usable data structure. The method will assume that argument is a string whose
+value is a comma-delimited list of key value pairs, and that each key value
+pair will be separated by an equals sign. It also assumes that each value is a
+template variable, and must be resolved. It uses each key and resolved value to
 construct a dictionary of data, saving it as the instance variable
 <code>dict_pairs</code>. These will be used as the first step when creating the new
 request.</p>
@@ -200,13 +197,13 @@ output of the tag.</p>
 </pre></div>
 
 
-<p>The first thing it does is create a copy of the current GET
+<p>The first thing the render method does is create a copy of the current GET
 <a href="https://docs.djangoproject.com/en/dev/ref/request-response/#querydict-objects">QueryDict</a>.
 A copy is made because the GET object itself is immutable. Using this as a
-starting point, the key/value pairs passed in via the tag are added (making
-sure to overwrite any of the current GET parameters). The path is retrieved
-from the request headers, and then the new GET <code>QueryDict</code> is checked.  If
-it has any items, they are appended to the path to return the new request.</p>
+starting point, the key/value pairs passed in via the tag are added
+(overwriting any of the current GET parameters). The path is retrieved from the
+request headers, and then the new GET <code>QueryDict</code> is checked.  If it has
+any items, they are appended to the path to return the new request.</p>
 <h3>Final Touches</h3>
 <p>The final step to implement the template tag is to create a function that
 the decorators can be applied to. This will be the entry point of the tag.</p>
@@ -225,15 +222,16 @@ key-value pairs) as <code>args</code>. This function is first decorated by the
 <li>accepts a function as an argument</li>
 <li>returns a function that:<ul>
 <li>has the arguments expected of a template tag (taking in the <code>parser</code>
-  and <code>token</code>)</li>
+  and <code>token</code> args)</li>
 <li>returns the result of the function it decorates (<code>append_to_get</code>)
-  after it has been passed the <code>split_contents</code> results</li>
+  after it has been passed the result of <code>split_contents</code></li>
 </ul>
 </li>
 </ul>
 <p>That function is then decorated <em>again</em> with the standard Django
-<code>register.tag</code> decorator.  The <code>append_to_get</code> method itself merely
-creates the <code>template.Node</code> subclass.</p>
+<code>register.tag</code> decorator, in order to ready it for use in a Django app.
+The <code>append_to_get</code> method itself merely creates the <code>template.Node</code>
+subclass.</p>
 <h3>The Final Product</h3>
 <p>Putting everything together, this is what the final product looks like:</p>
 <div class="highlight"><pre><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">template</span>
@@ -301,9 +299,9 @@ creates the <code>template.Node</code> subclass.</p>
 </pre></div>
 
 
-<p>None of the other GET parameters need to be worried about. The template also
-already handles any new GET parameters that are added, as it will submit the
-existing request's parameters without any extra instruction!.</p></div>
+<p>No GET parameters need be worried about, other than the page parameter. The
+template also will handle any new GET parameters by default, as it will submit
+the existing request's parameters without any extra instruction!.</p></div>
 	<hr>
 <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
