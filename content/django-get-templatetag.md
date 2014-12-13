@@ -7,9 +7,8 @@ Summary: Creating a template tag that preserves GET parameters
 ### The Problem ###
 
 Giving users a view into a long list of items is a common function. A popular
-way to manage that view is to use Django's built in pagination feature.  This
-feature allows for easy creation of links to different pages of the items via
-the defined GET parameter.
+way to manage that view is to use Django's built in pagination feature, allowing
+links to different pages to be easily created.
 
 This works well as long as no other GET parameters need to be used in parallel.
 It starts to break down a bit as sorting, filtering, page size, and other
@@ -26,10 +25,9 @@ template with a context containing:
   [page](https://docs.djangoproject.com/en/dev/topics/pagination/#page-objects)
   object named ```page_obj``` (paired with the GET parameter of
   ```page```)
-* a filter constraint as ```filter``` (paired with the GET parameter of
+* a filter constraint ```filter``` (paired with the GET parameter of
   ```filter```)
-* a sort constraint as ```sort``` (paired with the GET parameter of
-  ```sort```)
+* a sort constraint ```sort``` (paired with the GET parameter of ```sort```)
 
 then:
 
@@ -38,15 +36,14 @@ then:
         next
     </a>
 
-would work. However, it requires all of the GET parameters to be known,
+will work. However, it requires all of the GET parameters to be known,
 as well as their values. It also would need to be updated any time the possible
 GET parameters change. This is a lot of extra work for something that is
 tangential to the pagination function.
 
 ### The Setup ###
 
-The Django feature with which code repetition will be reduced is called a
-[template
+To lessen the technical burden of pagination, implement a [template
 tag](https://docs.djangoproject.com/en/dev/howto/custom-template-tags/). The
 first thing to do when creating a custom template tag is to decide which app to
 put it in. If the tag is only needed for a single app, then it can be put
@@ -68,8 +65,9 @@ This sets up the module to implement a Django template tag.
 
 ### A Helping Hand ###
 
-The next step to take is to add a decorator that eases much of the boilerplate
-involved with a tag. It is short and sweet:
+Template tags generally require a bit of boilerplate that does not change much
+across all tags. Make a decorator that reduces the need to worry about this
+boilerplate:
 
     :::python
     def easy_tag(func):
@@ -88,13 +86,13 @@ parsing of the tag parameters. The ```inner``` function has the signature
 required of a template tag: the two arguments ```parser``` and ```token```.
 
 ```parser``` will not be used in this tag, so it can be ignored. ```token``` is
-the tag in its entirety, as it is called in the template. The inner function
-tries to call the ```split_contents``` method of the token, which splits the
-text of the entire tag into space delimited pieces. Note that
-```split_contents``` is used, which takes care to keep quoted strings as a
-single item (as opposed to ```split``` which does not).
+the tag in its entirety, as it exists in the template. The inner function tries
+to call the ```split_contents``` method of the token, which splits the text of
+the entire tag into space delimited pieces. Note that ```split_contents``` is
+used, which takes care to keep quoted strings as a single item (as opposed to
+```split``` which does not).
 
-For example, the if the template were to call a test tag:
+For example, if the template were to call a test tag:
 
     :::django
     {% test foo "bar baz" foo %}
@@ -115,15 +113,14 @@ easy_tag decorator would handle splitting the args into the pieces
 
 and passing that as the arg list into ```test```. In this case, tag_name would
 be assigned the value ```test```, since that is the first item in the list.
-```arg1``` would be assigned ```foo```, ```arg2``` would be assigned
-```"bar baz"```, and ```arg3``` would be assigned ```foo```.  In addition to
-the splitting the tag, the decorator handles catching any errors encountered
-while splitting the tag arguments and throwing the correct
-```TemplateSyntaxError``` exception. It creates a descriptive exception message
-by adding in the tag name, which is always the first item of the list returned
-by ```split_contents```. It also sets the name and documentation string of the
-function being wrapped to the new function created by the decorator in order to
-keep everything consistent.
+```arg1``` would be assigned ```foo```, ```arg2``` would be assigned ```"bar
+baz"```, and ```arg3``` would be assigned ```foo```.  In addition to splitting
+the tag, the decorator handles catching any errors encountered while executing
+the tag's code, and throwing a ```TemplateSyntaxError``` exception. It creates
+a descriptive exception message by adding in the tag name, which is always the
+first item of the list returned by ```split_contents```. It also sets the name
+and documentation string of the function being wrapped to the new function
+created by the decorator in order to keep everything consistent.
 
 ### Parsing the Tag Arguments ###
 
@@ -131,7 +128,7 @@ The next step in creating the tag is to begin implementing the
 ```template.Node``` subclass. This will be the meat of the custom tag. A Node
 object is what must be be returned when registering a template tag via
 ```register.tag```. The Node object requires two methods: ```__init__``` and
-```render```. The first step will be to create the ```__init__``` method.
+```render```. The first step will be to create the ```__init__``` method:
 
     :::python
     class AppendGetNode(template.Node):
@@ -142,10 +139,10 @@ object is what must be be returned when registering a template tag via
                 self.dict_pairs[pair[0]] = template.Variable(pair[1])
 
 The ```__init__``` method should handle compiling the tag argument into a
-usable data structure. The method will assume that argument is a
-comma-delimited list of key value pairs, and that each key value pair will be
-separated by an equals sign. It also assumes that each value is a template
-variable, and must be resolved. It uses each key and resolved value to
+usable data structure. The method will assume that argument is a string whose
+value is a comma-delimited list of key value pairs, and that each key value
+pair will be separated by an equals sign. It also assumes that each value is a
+template variable, and must be resolved. It uses each key and resolved value to
 construct a dictionary of data, saving it as the instance variable
 ```dict_pairs```. These will be used as the first step when creating the new
 request.
@@ -172,13 +169,13 @@ output of the tag.
 
         return path
 
-The first thing it does is create a copy of the current GET
+The first thing the render method does is create a copy of the current GET
 [QueryDict](https://docs.djangoproject.com/en/dev/ref/request-response/#querydict-objects).
 A copy is made because the GET object itself is immutable. Using this as a
-starting point, the key/value pairs passed in via the tag are added (making
-sure to overwrite any of the current GET parameters). The path is retrieved
-from the request headers, and then the new GET ```QueryDict``` is checked.  If
-it has any items, they are appended to the path to return the new request.
+starting point, the key/value pairs passed in via the tag are added
+(overwriting any of the current GET parameters). The path is retrieved from the
+request headers, and then the new GET ```QueryDict``` is checked.  If it has
+any items, they are appended to the path to return the new request.
 
 ### Final Touches ###
 
@@ -199,13 +196,14 @@ key-value pairs) as ```args```. This function is first decorated by the
 * accepts a function as an argument
 * returns a function that:
     * has the arguments expected of a template tag (taking in the ```parser```
-      and ```token```)
+      and ```token``` args)
     * returns the result of the function it decorates (```append_to_get```)
-      after it has been passed the ```split_contents``` results
+      after it has been passed the result of ```split_contents```
 
 That function is then decorated *again* with the standard Django
-```register.tag``` decorator.  The ```append_to_get``` method itself merely
-creates the ```template.Node``` subclass.
+```register.tag``` decorator, in order to ready it for use in a Django app.
+The ```append_to_get``` method itself merely creates the ```template.Node```
+subclass.
 
 ### The Final Product ###
 
@@ -276,6 +274,6 @@ can now be replaced with:
         next
     </a>
 
-None of the other GET parameters need to be worried about. The template also
-already handles any new GET parameters that are added, as it will submit the
-existing request's parameters without any extra instruction!.
+No GET parameters need be worried about, other than the page parameter. The
+template also will handle any new GET parameters by default, as it will submit
+the existing request's parameters without any extra instruction!.

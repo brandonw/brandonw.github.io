@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom"><title>Brandon Waskiewicz</title><link href="https://brandonw.github.io/" rel="alternate"></link><link href="https://brandonw.github.io/feeds/all-en.atom.xml" rel="self"></link><id>https://brandonw.github.io/</id><updated>2014-12-10T21:17:00-05:00</updated><entry><title>GET-preserving Django template tag</title><link href="https://brandonw.github.io/get-preserving-django-template-tag.html" rel="alternate"></link><updated>2014-12-10T21:17:00-05:00</updated><author><name>Brandon Waskiewicz</name></author><id>tag:brandonw.github.io,2014-12-10:get-preserving-django-template-tag.html</id><summary type="html">&lt;h3&gt;The Problem&lt;/h3&gt;
 &lt;p&gt;Giving users a view into a long list of items is a common function. A popular
-way to manage that view is to use Django's built in pagination feature.  This
-feature allows for easy creation of links to different pages of the items via
-the defined GET parameter.&lt;/p&gt;
+way to manage that view is to use Django's built in pagination feature, allowing
+links to different pages to be easily created.&lt;/p&gt;
 &lt;p&gt;This works well as long as no other GET parameters need to be used in parallel.
 It starts to break down a bit as sorting, filtering, page size, and other
 functions are added.  This post will annotate and explain an elegant fix found
@@ -17,10 +16,9 @@ template with a context containing:&lt;/p&gt;
   &lt;a href="https://docs.djangoproject.com/en/dev/topics/pagination/#page-objects"&gt;page&lt;/a&gt;
   object named &lt;code&gt;page_obj&lt;/code&gt; (paired with the GET parameter of
   &lt;code&gt;page&lt;/code&gt;)&lt;/li&gt;
-&lt;li&gt;a filter constraint as &lt;code&gt;filter&lt;/code&gt; (paired with the GET parameter of
+&lt;li&gt;a filter constraint &lt;code&gt;filter&lt;/code&gt; (paired with the GET parameter of
   &lt;code&gt;filter&lt;/code&gt;)&lt;/li&gt;
-&lt;li&gt;a sort constraint as &lt;code&gt;sort&lt;/code&gt; (paired with the GET parameter of
-  &lt;code&gt;sort&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;a sort constraint &lt;code&gt;sort&lt;/code&gt; (paired with the GET parameter of &lt;code&gt;sort&lt;/code&gt;)&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;then:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="x"&gt;&amp;lt;a href=&amp;quot;?page=&lt;/span&gt;&lt;span class="cp"&gt;{{&lt;/span&gt; &lt;span class="nv"&gt;page_obj.next_page_number&lt;/span&gt; &lt;span class="cp"&gt;}}&lt;/span&gt;&lt;span class="x"&gt;&amp;amp;filter=&lt;/span&gt;&lt;span class="cp"&gt;{{&lt;/span&gt; &lt;span class="nv"&gt;filter&lt;/span&gt; &lt;span class="cp"&gt;}}&lt;/span&gt;&lt;span class="x"&gt;&amp;amp;sort=&lt;/span&gt;&lt;span class="cp"&gt;{{&lt;/span&gt; &lt;span class="nv"&gt;sort&lt;/span&gt; &lt;span class="cp"&gt;}}&lt;/span&gt;&lt;span class="x"&gt;&amp;quot;&amp;gt;&lt;/span&gt;
@@ -29,13 +27,12 @@ template with a context containing:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;would work. However, it requires all of the GET parameters to be known,
+&lt;p&gt;will work. However, it requires all of the GET parameters to be known,
 as well as their values. It also would need to be updated any time the possible
 GET parameters change. This is a lot of extra work for something that is
 tangential to the pagination function.&lt;/p&gt;
 &lt;h3&gt;The Setup&lt;/h3&gt;
-&lt;p&gt;The Django feature with which code repetition will be reduced is called a
-&lt;a href="https://docs.djangoproject.com/en/dev/howto/custom-template-tags/"&gt;template
+&lt;p&gt;To lessen the technical burden of pagination, implement a &lt;a href="https://docs.djangoproject.com/en/dev/howto/custom-template-tags/"&gt;template
 tag&lt;/a&gt;. The
 first thing to do when creating a custom template tag is to decide which app to
 put it in. If the tag is only needed for a single app, then it can be put
@@ -54,8 +51,9 @@ off with:&lt;/p&gt;
 
 &lt;p&gt;This sets up the module to implement a Django template tag.&lt;/p&gt;
 &lt;h3&gt;A Helping Hand&lt;/h3&gt;
-&lt;p&gt;The next step to take is to add a decorator that eases much of the boilerplate
-involved with a tag. It is short and sweet:&lt;/p&gt;
+&lt;p&gt;Template tags generally require a bit of boilerplate that does not change much
+across all tags. Make a decorator that reduces the need to worry about this
+boilerplate:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;easy_tag&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;func&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
     &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;inner&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;parser&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
         &lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
@@ -73,12 +71,12 @@ involved with a tag. It is short and sweet:&lt;/p&gt;
 parsing of the tag parameters. The &lt;code&gt;inner&lt;/code&gt; function has the signature
 required of a template tag: the two arguments &lt;code&gt;parser&lt;/code&gt; and &lt;code&gt;token&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;parser&lt;/code&gt; will not be used in this tag, so it can be ignored. &lt;code&gt;token&lt;/code&gt; is
-the tag in its entirety, as it is called in the template. The inner function
-tries to call the &lt;code&gt;split_contents&lt;/code&gt; method of the token, which splits the
-text of the entire tag into space delimited pieces. Note that
-&lt;code&gt;split_contents&lt;/code&gt; is used, which takes care to keep quoted strings as a
-single item (as opposed to &lt;code&gt;split&lt;/code&gt; which does not).&lt;/p&gt;
-&lt;p&gt;For example, the if the template were to call a test tag:&lt;/p&gt;
+the tag in its entirety, as it exists in the template. The inner function tries
+to call the &lt;code&gt;split_contents&lt;/code&gt; method of the token, which splits the text of
+the entire tag into space delimited pieces. Note that &lt;code&gt;split_contents&lt;/code&gt; is
+used, which takes care to keep quoted strings as a single item (as opposed to
+&lt;code&gt;split&lt;/code&gt; which does not).&lt;/p&gt;
+&lt;p&gt;For example, if the template were to call a test tag:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;{%&lt;/span&gt; &lt;span class="k"&gt;test&lt;/span&gt; &lt;span class="nv"&gt;foo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;bar baz&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;foo&lt;/span&gt; &lt;span class="cp"&gt;%}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -99,21 +97,20 @@ easy_tag decorator would handle splitting the args into the pieces&lt;/p&gt;
 
 &lt;p&gt;and passing that as the arg list into &lt;code&gt;test&lt;/code&gt;. In this case, tag_name would
 be assigned the value &lt;code&gt;test&lt;/code&gt;, since that is the first item in the list.
-&lt;code&gt;arg1&lt;/code&gt; would be assigned &lt;code&gt;foo&lt;/code&gt;, &lt;code&gt;arg2&lt;/code&gt; would be assigned
-&lt;code&gt;"bar baz"&lt;/code&gt;, and &lt;code&gt;arg3&lt;/code&gt; would be assigned &lt;code&gt;foo&lt;/code&gt;.  In addition to
-the splitting the tag, the decorator handles catching any errors encountered
-while splitting the tag arguments and throwing the correct
-&lt;code&gt;TemplateSyntaxError&lt;/code&gt; exception. It creates a descriptive exception message
-by adding in the tag name, which is always the first item of the list returned
-by &lt;code&gt;split_contents&lt;/code&gt;. It also sets the name and documentation string of the
-function being wrapped to the new function created by the decorator in order to
-keep everything consistent.&lt;/p&gt;
+&lt;code&gt;arg1&lt;/code&gt; would be assigned &lt;code&gt;foo&lt;/code&gt;, &lt;code&gt;arg2&lt;/code&gt; would be assigned &lt;code&gt;"bar
+baz"&lt;/code&gt;, and &lt;code&gt;arg3&lt;/code&gt; would be assigned &lt;code&gt;foo&lt;/code&gt;.  In addition to splitting
+the tag, the decorator handles catching any errors encountered while executing
+the tag's code, and throwing a &lt;code&gt;TemplateSyntaxError&lt;/code&gt; exception. It creates
+a descriptive exception message by adding in the tag name, which is always the
+first item of the list returned by &lt;code&gt;split_contents&lt;/code&gt;. It also sets the name
+and documentation string of the function being wrapped to the new function
+created by the decorator in order to keep everything consistent.&lt;/p&gt;
 &lt;h3&gt;Parsing the Tag Arguments&lt;/h3&gt;
 &lt;p&gt;The next step in creating the tag is to begin implementing the
 &lt;code&gt;template.Node&lt;/code&gt; subclass. This will be the meat of the custom tag. A Node
 object is what must be be returned when registering a template tag via
 &lt;code&gt;register.tag&lt;/code&gt;. The Node object requires two methods: &lt;code&gt;__init__&lt;/code&gt; and
-&lt;code&gt;render&lt;/code&gt;. The first step will be to create the &lt;code&gt;__init__&lt;/code&gt; method.&lt;/p&gt;
+&lt;code&gt;render&lt;/code&gt;. The first step will be to create the &lt;code&gt;__init__&lt;/code&gt; method:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;AppendGetNode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Node&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
     &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
         &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dict_pairs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
@@ -124,10 +121,10 @@ object is what must be be returned when registering a template tag via
 
 
 &lt;p&gt;The &lt;code&gt;__init__&lt;/code&gt; method should handle compiling the tag argument into a
-usable data structure. The method will assume that argument is a
-comma-delimited list of key value pairs, and that each key value pair will be
-separated by an equals sign. It also assumes that each value is a template
-variable, and must be resolved. It uses each key and resolved value to
+usable data structure. The method will assume that argument is a string whose
+value is a comma-delimited list of key value pairs, and that each key value
+pair will be separated by an equals sign. It also assumes that each value is a
+template variable, and must be resolved. It uses each key and resolved value to
 construct a dictionary of data, saving it as the instance variable
 &lt;code&gt;dict_pairs&lt;/code&gt;. These will be used as the first step when creating the new
 request.&lt;/p&gt;
@@ -151,13 +148,13 @@ output of the tag.&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;The first thing it does is create a copy of the current GET
+&lt;p&gt;The first thing the render method does is create a copy of the current GET
 &lt;a href="https://docs.djangoproject.com/en/dev/ref/request-response/#querydict-objects"&gt;QueryDict&lt;/a&gt;.
 A copy is made because the GET object itself is immutable. Using this as a
-starting point, the key/value pairs passed in via the tag are added (making
-sure to overwrite any of the current GET parameters). The path is retrieved
-from the request headers, and then the new GET &lt;code&gt;QueryDict&lt;/code&gt; is checked.  If
-it has any items, they are appended to the path to return the new request.&lt;/p&gt;
+starting point, the key/value pairs passed in via the tag are added
+(overwriting any of the current GET parameters). The path is retrieved from the
+request headers, and then the new GET &lt;code&gt;QueryDict&lt;/code&gt; is checked.  If it has
+any items, they are appended to the path to return the new request.&lt;/p&gt;
 &lt;h3&gt;Final Touches&lt;/h3&gt;
 &lt;p&gt;The final step to implement the template tag is to create a function that
 the decorators can be applied to. This will be the entry point of the tag.&lt;/p&gt;
@@ -176,15 +173,16 @@ key-value pairs) as &lt;code&gt;args&lt;/code&gt;. This function is first decora
 &lt;li&gt;accepts a function as an argument&lt;/li&gt;
 &lt;li&gt;returns a function that:&lt;ul&gt;
 &lt;li&gt;has the arguments expected of a template tag (taking in the &lt;code&gt;parser&lt;/code&gt;
-  and &lt;code&gt;token&lt;/code&gt;)&lt;/li&gt;
+  and &lt;code&gt;token&lt;/code&gt; args)&lt;/li&gt;
 &lt;li&gt;returns the result of the function it decorates (&lt;code&gt;append_to_get&lt;/code&gt;)
-  after it has been passed the &lt;code&gt;split_contents&lt;/code&gt; results&lt;/li&gt;
+  after it has been passed the result of &lt;code&gt;split_contents&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;That function is then decorated &lt;em&gt;again&lt;/em&gt; with the standard Django
-&lt;code&gt;register.tag&lt;/code&gt; decorator.  The &lt;code&gt;append_to_get&lt;/code&gt; method itself merely
-creates the &lt;code&gt;template.Node&lt;/code&gt; subclass.&lt;/p&gt;
+&lt;code&gt;register.tag&lt;/code&gt; decorator, in order to ready it for use in a Django app.
+The &lt;code&gt;append_to_get&lt;/code&gt; method itself merely creates the &lt;code&gt;template.Node&lt;/code&gt;
+subclass.&lt;/p&gt;
 &lt;h3&gt;The Final Product&lt;/h3&gt;
 &lt;p&gt;Putting everything together, this is what the final product looks like:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;template&lt;/span&gt;
@@ -252,9 +250,9 @@ creates the &lt;code&gt;template.Node&lt;/code&gt; subclass.&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;None of the other GET parameters need to be worried about. The template also
-already handles any new GET parameters that are added, as it will submit the
-existing request's parameters without any extra instruction!.&lt;/p&gt;</summary><category term="django"></category><category term="template tags"></category></entry><entry><title>ASP.NET MVC 5 Error Pages</title><link href="https://brandonw.github.io/aspnet-mvc-5-error-pages.html" rel="alternate"></link><updated>2014-10-28T20:15:00-04:00</updated><author><name>Brandon Waskiewicz</name></author><id>tag:brandonw.github.io,2014-10-28:aspnet-mvc-5-error-pages.html</id><summary type="html">&lt;h3&gt;Introduction&lt;/h3&gt;
+&lt;p&gt;No GET parameters need be worried about, other than the page parameter. The
+template also will handle any new GET parameters by default, as it will submit
+the existing request's parameters without any extra instruction!.&lt;/p&gt;</summary><category term="django"></category><category term="template tags"></category></entry><entry><title>ASP.NET MVC 5 Error Pages</title><link href="https://brandonw.github.io/aspnet-mvc-5-error-pages.html" rel="alternate"></link><updated>2014-10-28T20:15:00-04:00</updated><author><name>Brandon Waskiewicz</name></author><id>tag:brandonw.github.io,2014-10-28:aspnet-mvc-5-error-pages.html</id><summary type="html">&lt;h3&gt;Introduction&lt;/h3&gt;
 &lt;p&gt;The default configuration for errors in ASP.NET MVC leaves a lot to be desired.
 There is an error attribute that handles redirecting any errors thrown by an
 action method, but this constrains everything to be handled in a single view.
@@ -265,9 +263,9 @@ error handling mechanism will be detailed.&lt;/p&gt;
 &lt;p&gt;The first step is to make sure everything &lt;em&gt;outside&lt;/em&gt; of the ASP.NET pipeline is
 handled. If an error occurs while IIS is processing a request, but it does not
 occur inside of the ASP.NET pipeline, then the configuration specified in the
-httpErrors tag in the server's web.config is what describes the error
-behaviour. Inside your web.config's &lt;code&gt;system.webServer&lt;/code&gt; tag (direct child of
-the &lt;code&gt;configuration&lt;/code&gt; tag), configure the &lt;code&gt;httpErrors&lt;/code&gt; tag:&lt;/p&gt;
+httpErrors tag in the server's web.config handles the error.  Inside
+of the &lt;code&gt;system.webServer&lt;/code&gt; tag (direct child of the &lt;code&gt;configuration&lt;/code&gt;
+tag), configure the &lt;code&gt;httpErrors&lt;/code&gt; tag:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nt"&gt;&amp;lt;httpErrors&lt;/span&gt; &lt;span class="na"&gt;errorMode=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;DetailedLocalOnly&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
 &lt;span class="nt"&gt;&amp;lt;/httpErrors&amp;gt;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -286,17 +284,16 @@ from a non-local client, then the configuration specified will be used instead.&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;What this does is to remove any existing error handling for both 404 and 500
-errors which may have been set up at a higher level configuration file (like
-the user-level or machine-level config). After removing any existing
-configuration, it adds a fresh entry to the configuration, specifying the html
-page and response mode for the given error. The &lt;code&gt;responseMode&lt;/code&gt; attribute
-value  of &lt;strong&gt;File&lt;/strong&gt; tells the IIS server to rewrite the response with the
-contents of the specified file. This is important to do, in order to maintain
-the original request URL. It would be confusing to send a request to
-&lt;code&gt;/foo/bar&lt;/code&gt;, encounter a 404 error, and then be redirected to
-&lt;code&gt;/404.html&lt;/code&gt;.  Not only will the user see a URL they did not request, but
-the original URL will be lost.&lt;/p&gt;
+&lt;p&gt;This removes any existing error handling for both 404 and 500 errors which may
+have been set up at a higher level configuration file (like the user-level or
+machine-level config). After removing any existing configuration, it adds a
+fresh entry to the configuration, specifying the html file and response mode
+for the given error. The &lt;code&gt;responseMode&lt;/code&gt; attribute value  of &lt;strong&gt;File&lt;/strong&gt; tells
+the IIS server to rewrite the response with the contents of the specified file.
+This is important to do, in order to maintain the original request URL. It
+would be confusing to send a request to &lt;code&gt;/foo/bar&lt;/code&gt;, encounter a 404 error,
+and then be redirected to &lt;code&gt;/404.html&lt;/code&gt;.  Not only will the user see a URL
+that was not requested, but the original URL will be lost.&lt;/p&gt;
 &lt;p&gt;The &lt;code&gt;404.html&lt;/code&gt; and &lt;code&gt;500.html&lt;/code&gt; files should be saved in the project
 root, not in the &lt;code&gt;Views&lt;/code&gt; directory. IIS may have trouble finding them if
 they are saved elsewhere.&lt;/p&gt;
@@ -321,7 +318,7 @@ rest of the site.&lt;/p&gt;
 of a new &lt;code&gt;HandleErrorAttribute&lt;/code&gt; instance to the global filter collection in
 the &lt;code&gt;RegisterGlobalFilters&lt;/code&gt; method of &lt;code&gt;FilterConfig.cs&lt;/code&gt;. This will
 prevent any exceptions thrown in controller actions from being handled by the
-&lt;code&gt;HandleErrorAttribute&lt;/code&gt;. The &lt;code&gt;Error.cshtml&lt;/code&gt; can now be removed from the
+&lt;code&gt;HandleErrorAttribute&lt;/code&gt;. The &lt;code&gt;Error.cshtml&lt;/code&gt; may now be removed from the
 Views/Shared folder as well.&lt;/p&gt;
 &lt;h3&gt;ASP.NET Error Configuration&lt;/h3&gt;
 &lt;p&gt;Back in the web.config, custom errors must be enabled in the ASP.NET pipeline:&lt;/p&gt;
@@ -345,9 +342,8 @@ will be skipped in favor of a more flexible approach.&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;This method is called any time an uncaught exception trickles up to the edge of
-ASP.NET.  It will be the primary mechanism by which the error response is
-controlled.&lt;/p&gt;
+&lt;p&gt;This method is called any time an exception is caught by ASP.NET. It will be
+the primary mechanism by which the error response is controlled.&lt;/p&gt;
 &lt;p&gt;The first step is to check if custom errors are enabled:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kt"&gt;var&lt;/span&gt; &lt;span class="n"&gt;app&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;MvcApplication&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;sender&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="kt"&gt;var&lt;/span&gt; &lt;span class="n"&gt;context&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Context&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -359,7 +355,7 @@ controlled.&lt;/p&gt;
 
 &lt;p&gt;If they are not enabled, no further action is required. The error will continue
 and eventually render the familiar detailed error page. If custom errors are
-enabled, the error must be retrieved, and then the context response cleared.&lt;/p&gt;
+enabled, the error is retrieved, and the context's response is cleared.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kt"&gt;var&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;GetLastError&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
 &lt;span class="n"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Response&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Clear&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
 &lt;span class="n"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ClearError&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
@@ -401,9 +397,8 @@ error, which is mapped to the &lt;code&gt;InternalServerError&lt;/code&gt; actio
 is also added to the route data, in case it is needed in the controller action.&lt;/p&gt;
 &lt;p&gt;The exception must now be checked. If it is not an &lt;code&gt;HttpException&lt;/code&gt;, then the
 default action of &lt;code&gt;InternalServerError&lt;/code&gt; is executed. If the exception
-&lt;strong&gt;is&lt;/strong&gt; an &lt;code&gt;HttpException&lt;/code&gt;, then the the HTTP code can be conditionally
-tested against. Three actions are specified in this controller, but any number
-can be added.&lt;/p&gt;
+&lt;strong&gt;is&lt;/strong&gt; an &lt;code&gt;HttpException&lt;/code&gt;, then the the HTTP code can be tested.  Three
+actions are specified in this controller, but any number can be added.&lt;/p&gt;
 &lt;p&gt;The &lt;code&gt;Application_Error&lt;/code&gt; method should look something like this:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;protected&lt;/span&gt; &lt;span class="k"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;Application_Error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt; &lt;span class="n"&gt;sender&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;EventArgs&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="p"&gt;{&lt;/span&gt;
@@ -458,13 +453,12 @@ and templates are all exactly the same as any other in the application. Nothing
 is special-cased.&lt;/p&gt;
 &lt;h3&gt;How to Handle Errors In Code&lt;/h3&gt;
 &lt;p&gt;Now that everything is configured, whenever a request is received for an action
-with an ID that is not found, you can:&lt;/p&gt;
+with an ID that is not found:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;throw&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nf"&gt;HttpException&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="m"&gt;404&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Foo entity not found.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;and everything will be handled. If a client tries to reach an unauthorized
-action:&lt;/p&gt;
+&lt;p&gt;If a client tries to reach an unauthorized action:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;throw&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nf"&gt;HttpException&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="m"&gt;403&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Forbidden&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -475,9 +469,9 @@ the server will render the appropriate response.&lt;/p&gt;
 &lt;p&gt;The previously mentioned way to handle 404 errors will work in any case where
 the controller exists. However, what if the client requests a URL that does not
 match any controllers? In this case, ASP.NET sees no route that matches in its
-routing table, so it lets the request percolate up to IIS. This is where the
-previously configured IIS error pages would normally come in.  However, that
-can be avoided. Add a catch-all route to the routing table after all existing
+routing table, so it passes the request up to IIS. This is where the previously
+configured IIS error pages would normally come in.  However, that can be
+avoided. Add a catch-all route to the routing table after all existing
 &lt;code&gt;MapRoute&lt;/code&gt; calls in &lt;code&gt;RouteConfig.cs&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;routes&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;MapRoute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;404&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;

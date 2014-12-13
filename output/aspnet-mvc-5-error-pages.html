@@ -59,9 +59,9 @@ error handling mechanism will be detailed.</p>
 <p>The first step is to make sure everything <em>outside</em> of the ASP.NET pipeline is
 handled. If an error occurs while IIS is processing a request, but it does not
 occur inside of the ASP.NET pipeline, then the configuration specified in the
-httpErrors tag in the server's web.config is what describes the error
-behaviour. Inside your web.config's <code>system.webServer</code> tag (direct child of
-the <code>configuration</code> tag), configure the <code>httpErrors</code> tag:</p>
+httpErrors tag in the server's web.config handles the error.  Inside
+of the <code>system.webServer</code> tag (direct child of the <code>configuration</code>
+tag), configure the <code>httpErrors</code> tag:</p>
 <div class="highlight"><pre><span class="nt">&lt;httpErrors</span> <span class="na">errorMode=</span><span class="s">&quot;DetailedLocalOnly&quot;</span><span class="nt">&gt;</span>
 <span class="nt">&lt;/httpErrors&gt;</span>
 </pre></div>
@@ -80,17 +80,16 @@ from a non-local client, then the configuration specified will be used instead.<
 </pre></div>
 
 
-<p>What this does is to remove any existing error handling for both 404 and 500
-errors which may have been set up at a higher level configuration file (like
-the user-level or machine-level config). After removing any existing
-configuration, it adds a fresh entry to the configuration, specifying the html
-page and response mode for the given error. The <code>responseMode</code> attribute
-value  of <strong>File</strong> tells the IIS server to rewrite the response with the
-contents of the specified file. This is important to do, in order to maintain
-the original request URL. It would be confusing to send a request to
-<code>/foo/bar</code>, encounter a 404 error, and then be redirected to
-<code>/404.html</code>.  Not only will the user see a URL they did not request, but
-the original URL will be lost.</p>
+<p>This removes any existing error handling for both 404 and 500 errors which may
+have been set up at a higher level configuration file (like the user-level or
+machine-level config). After removing any existing configuration, it adds a
+fresh entry to the configuration, specifying the html file and response mode
+for the given error. The <code>responseMode</code> attribute value  of <strong>File</strong> tells
+the IIS server to rewrite the response with the contents of the specified file.
+This is important to do, in order to maintain the original request URL. It
+would be confusing to send a request to <code>/foo/bar</code>, encounter a 404 error,
+and then be redirected to <code>/404.html</code>.  Not only will the user see a URL
+that was not requested, but the original URL will be lost.</p>
 <p>The <code>404.html</code> and <code>500.html</code> files should be saved in the project
 root, not in the <code>Views</code> directory. IIS may have trouble finding them if
 they are saved elsewhere.</p>
@@ -115,7 +114,7 @@ rest of the site.</p>
 of a new <code>HandleErrorAttribute</code> instance to the global filter collection in
 the <code>RegisterGlobalFilters</code> method of <code>FilterConfig.cs</code>. This will
 prevent any exceptions thrown in controller actions from being handled by the
-<code>HandleErrorAttribute</code>. The <code>Error.cshtml</code> can now be removed from the
+<code>HandleErrorAttribute</code>. The <code>Error.cshtml</code> may now be removed from the
 Views/Shared folder as well.</p>
 <h3>ASP.NET Error Configuration</h3>
 <p>Back in the web.config, custom errors must be enabled in the ASP.NET pipeline:</p>
@@ -139,9 +138,8 @@ will be skipped in favor of a more flexible approach.</p>
 </pre></div>
 
 
-<p>This method is called any time an uncaught exception trickles up to the edge of
-ASP.NET.  It will be the primary mechanism by which the error response is
-controlled.</p>
+<p>This method is called any time an exception is caught by ASP.NET. It will be
+the primary mechanism by which the error response is controlled.</p>
 <p>The first step is to check if custom errors are enabled:</p>
 <div class="highlight"><pre><span class="kt">var</span> <span class="n">app</span> <span class="p">=</span> <span class="p">(</span><span class="n">MvcApplication</span><span class="p">)</span><span class="n">sender</span><span class="p">;</span>
 <span class="kt">var</span> <span class="n">context</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Context</span><span class="p">;</span>
@@ -153,7 +151,7 @@ controlled.</p>
 
 <p>If they are not enabled, no further action is required. The error will continue
 and eventually render the familiar detailed error page. If custom errors are
-enabled, the error must be retrieved, and then the context response cleared.</p>
+enabled, the error is retrieved, and the context's response is cleared.</p>
 <div class="highlight"><pre><span class="kt">var</span> <span class="n">ex</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Server</span><span class="p">.</span><span class="n">GetLastError</span><span class="p">();</span>
 <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">Clear</span><span class="p">();</span>
 <span class="n">context</span><span class="p">.</span><span class="n">ClearError</span><span class="p">();</span>
@@ -195,9 +193,8 @@ error, which is mapped to the <code>InternalServerError</code> action. The excep
 is also added to the route data, in case it is needed in the controller action.</p>
 <p>The exception must now be checked. If it is not an <code>HttpException</code>, then the
 default action of <code>InternalServerError</code> is executed. If the exception
-<strong>is</strong> an <code>HttpException</code>, then the the HTTP code can be conditionally
-tested against. Three actions are specified in this controller, but any number
-can be added.</p>
+<strong>is</strong> an <code>HttpException</code>, then the the HTTP code can be tested.  Three
+actions are specified in this controller, but any number can be added.</p>
 <p>The <code>Application_Error</code> method should look something like this:</p>
 <div class="highlight"><pre><span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Error</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
 <span class="p">{</span>
@@ -252,13 +249,12 @@ and templates are all exactly the same as any other in the application. Nothing
 is special-cased.</p>
 <h3>How to Handle Errors In Code</h3>
 <p>Now that everything is configured, whenever a request is received for an action
-with an ID that is not found, you can:</p>
+with an ID that is not found:</p>
 <div class="highlight"><pre><span class="k">throw</span> <span class="k">new</span> <span class="nf">HttpException</span><span class="p">(</span><span class="m">404</span><span class="p">,</span> <span class="s">&quot;Foo entity not found.&quot;</span><span class="p">);</span>
 </pre></div>
 
 
-<p>and everything will be handled. If a client tries to reach an unauthorized
-action:</p>
+<p>If a client tries to reach an unauthorized action:</p>
 <div class="highlight"><pre><span class="k">throw</span> <span class="k">new</span> <span class="nf">HttpException</span><span class="p">(</span><span class="m">403</span><span class="p">,</span> <span class="s">&quot;Forbidden&quot;</span><span class="p">);</span>
 </pre></div>
 
@@ -269,9 +265,9 @@ the server will render the appropriate response.</p>
 <p>The previously mentioned way to handle 404 errors will work in any case where
 the controller exists. However, what if the client requests a URL that does not
 match any controllers? In this case, ASP.NET sees no route that matches in its
-routing table, so it lets the request percolate up to IIS. This is where the
-previously configured IIS error pages would normally come in.  However, that
-can be avoided. Add a catch-all route to the routing table after all existing
+routing table, so it passes the request up to IIS. This is where the previously
+configured IIS error pages would normally come in.  However, that can be
+avoided. Add a catch-all route to the routing table after all existing
 <code>MapRoute</code> calls in <code>RouteConfig.cs</code>:</p>
 <div class="highlight"><pre><span class="n">routes</span><span class="p">.</span><span class="n">MapRoute</span><span class="p">(</span>
     <span class="n">name</span><span class="p">:</span> <span class="s">&quot;404&quot;</span><span class="p">,</span>
