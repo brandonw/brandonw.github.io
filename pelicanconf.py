@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- #
 from __future__ import unicode_literals
+import datetime
 
 AUTHOR = u'Brandon Waskiewicz'
+YEAR = datetime.date.today().year
 SITENAME = u'Brandon Waskiewicz'
 SITESUBTITLE = u'Blog'
 SITEURL = ''

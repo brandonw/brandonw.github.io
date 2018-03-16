@@ -62,7 +62,7 @@ occur inside of the ASP.NET pipeline, then the configuration specified in the
 httpErrors tag in the server's web.config handles the error.  Inside
 of the <code>system.webServer</code> tag (direct child of the <code>configuration</code>
 tag), configure the <code>httpErrors</code> tag:</p>
-<div class="highlight"><pre><span class="nt">&lt;httpErrors</span> <span class="na">errorMode=</span><span class="s">&quot;DetailedLocalOnly&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><span class="nt">&lt;httpErrors</span> <span class="na">errorMode=</span><span class="s">&quot;DetailedLocalOnly&quot;</span><span class="nt">&gt;</span>
 <span class="nt">&lt;/httpErrors&gt;</span>
 </pre></div>
 
@@ -73,7 +73,7 @@ machine will receive the default detailed error messages.  If a request is made
 from a non-local client, then the configuration specified will be used instead.</p>
 <p>Add the configuration for the errors to customize as child tags of the
 <code>httpErrors</code> tag:</p>
-<div class="highlight"><pre><span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="nt">/&gt;</span>
+<div class="highlight"><pre><span></span><span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="nt">/&gt;</span>
 <span class="nt">&lt;error</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="na">path=</span><span class="s">&quot;404.html&quot;</span> <span class="na">responseMode=</span><span class="s">&quot;File&quot;</span> <span class="nt">/&gt;</span>
 <span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;500&quot;</span> <span class="nt">/&gt;</span>
 <span class="nt">&lt;error</span> <span class="na">statusCode=</span><span class="s">&quot;500&quot;</span> <span class="na">path=</span><span class="s">&quot;500.html&quot;</span> <span class="na">responseMode=</span><span class="s">&quot;File&quot;</span> <span class="nt">/&gt;</span>
@@ -94,7 +94,7 @@ that was not requested, but the original URL will be lost.</p>
 root, not in the <code>Views</code> directory. IIS may have trouble finding them if
 they are saved elsewhere.</p>
 <p>The final configuration should look something like this:</p>
-<div class="highlight"><pre><span class="nt">&lt;httpErrors</span> <span class="na">errorMode=</span><span class="s">&quot;DetailedLocalOnly&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><span></span><span class="nt">&lt;httpErrors</span> <span class="na">errorMode=</span><span class="s">&quot;DetailedLocalOnly&quot;</span><span class="nt">&gt;</span>
     <span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;error</span> <span class="na">statusCode=</span><span class="s">&quot;404&quot;</span> <span class="na">path=</span><span class="s">&quot;404.html&quot;</span> <span class="na">responseMode=</span><span class="s">&quot;File&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;remove</span> <span class="na">statusCode=</span><span class="s">&quot;500&quot;</span> <span class="nt">/&gt;</span>
@@ -118,7 +118,7 @@ prevent any exceptions thrown in controller actions from being handled by the
 Views/Shared folder as well.</p>
 <h3>ASP.NET Error Configuration</h3>
 <p>Back in the web.config, custom errors must be enabled in the ASP.NET pipeline:</p>
-<div class="highlight"><pre><span class="nt">&lt;customErrors</span> <span class="na">mode=</span><span class="s">&quot;RemoteOnly&quot;</span><span class="nt">&gt;&lt;/customErrors&gt;</span>
+<div class="highlight"><pre><span></span><span class="nt">&lt;customErrors</span> <span class="na">mode=</span><span class="s">&quot;RemoteOnly&quot;</span><span class="nt">&gt;&lt;/customErrors&gt;</span>
 </pre></div>
 
 
@@ -131,7 +131,7 @@ will be skipped in favor of a more flexible approach.</p>
 <p>The next step is to configure what ASP.NET should do when an
 <code>HTTPException</code> is thrown. To begin, add an <code>Application_Error</code> stub to
 <code>Global.asax.cs</code>:</p>
-<div class="highlight"><pre><span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Error</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Error</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
 <span class="p">{</span>
 
 <span class="p">}</span>
@@ -141,7 +141,7 @@ will be skipped in favor of a more flexible approach.</p>
 <p>This method is called any time an exception is caught by ASP.NET. It will be
 the primary mechanism by which the error response is controlled.</p>
 <p>The first step is to check if custom errors are enabled:</p>
-<div class="highlight"><pre><span class="kt">var</span> <span class="n">app</span> <span class="p">=</span> <span class="p">(</span><span class="n">MvcApplication</span><span class="p">)</span><span class="n">sender</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="kt">var</span> <span class="n">app</span> <span class="p">=</span> <span class="p">(</span><span class="n">MvcApplication</span><span class="p">)</span><span class="n">sender</span><span class="p">;</span>
 <span class="kt">var</span> <span class="n">context</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Context</span><span class="p">;</span>
 
 <span class="k">if</span> <span class="p">(!</span><span class="n">context</span><span class="p">.</span><span class="n">IsCustomErrorEnabled</span><span class="p">)</span>
@@ -152,7 +152,7 @@ the primary mechanism by which the error response is controlled.</p>
 <p>If they are not enabled, no further action is required. The error will continue
 and eventually render the familiar detailed error page. If custom errors are
 enabled, the error is retrieved, and the context's response is cleared.</p>
-<div class="highlight"><pre><span class="kt">var</span> <span class="n">ex</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Server</span><span class="p">.</span><span class="n">GetLastError</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><span class="kt">var</span> <span class="n">ex</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Server</span><span class="p">.</span><span class="n">GetLastError</span><span class="p">();</span>
 <span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">.</span><span class="n">Clear</span><span class="p">();</span>
 <span class="n">context</span><span class="p">.</span><span class="n">ClearError</span><span class="p">();</span>
 </pre></div>
@@ -161,7 +161,7 @@ enabled, the error is retrieved, and the context's response is cleared.</p>
 <p>This takes any existing response (namely, the default detailed error page), and
 clears it from the context. There is now a clean slate to work with, and routing
 can be handled:</p>
-<div class="highlight"><pre><span class="kt">var</span> <span class="n">httpException</span> <span class="p">=</span> <span class="n">ex</span> <span class="k">as</span> <span class="n">HttpException</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="kt">var</span> <span class="n">httpException</span> <span class="p">=</span> <span class="n">ex</span> <span class="k">as</span> <span class="n">HttpException</span><span class="p">;</span>
 <span class="kt">var</span> <span class="n">routeData</span> <span class="p">=</span> <span class="k">new</span> <span class="n">RouteData</span><span class="p">();</span>
 <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;controller&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&quot;Error&quot;</span><span class="p">;</span>
 <span class="n">routeData</span><span class="p">.</span><span class="n">Values</span><span class="p">[</span><span class="s">&quot;exception&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="n">ex</span><span class="p">;</span>
@@ -196,7 +196,7 @@ default action of <code>InternalServerError</code> is executed. If the exception
 <strong>is</strong> an <code>HttpException</code>, then the the HTTP code can be tested.  Three
 actions are specified in this controller, but any number can be added.</p>
 <p>The <code>Application_Error</code> method should look something like this:</p>
-<div class="highlight"><pre><span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Error</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="k">protected</span> <span class="k">void</span> <span class="nf">Application_Error</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">EventArgs</span> <span class="n">e</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="kt">var</span> <span class="n">app</span> <span class="p">=</span> <span class="p">(</span><span class="n">MvcApplication</span><span class="p">)</span><span class="n">sender</span><span class="p">;</span>
     <span class="kt">var</span> <span class="n">context</span> <span class="p">=</span> <span class="n">app</span><span class="p">.</span><span class="n">Context</span><span class="p">;</span>
@@ -250,12 +250,12 @@ is special-cased.</p>
 <h3>How to Handle Errors In Code</h3>
 <p>Now that everything is configured, whenever a request is received for an action
 with an ID that is not found:</p>
-<div class="highlight"><pre><span class="k">throw</span> <span class="k">new</span> <span class="nf">HttpException</span><span class="p">(</span><span class="m">404</span><span class="p">,</span> <span class="s">&quot;Foo entity not found.&quot;</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><span class="k">throw</span> <span class="k">new</span> <span class="nf">HttpException</span><span class="p">(</span><span class="m">404</span><span class="p">,</span> <span class="s">&quot;Foo entity not found.&quot;</span><span class="p">);</span>
 </pre></div>
 
 
 <p>If a client tries to reach an unauthorized action:</p>
-<div class="highlight"><pre><span class="k">throw</span> <span class="k">new</span> <span class="nf">HttpException</span><span class="p">(</span><span class="m">403</span><span class="p">,</span> <span class="s">&quot;Forbidden&quot;</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><span class="k">throw</span> <span class="k">new</span> <span class="nf">HttpException</span><span class="p">(</span><span class="m">403</span><span class="p">,</span> <span class="s">&quot;Forbidden&quot;</span><span class="p">);</span>
 </pre></div>
 
 
@@ -269,7 +269,7 @@ routing table, so it passes the request up to IIS. This is where the previously
 configured IIS error pages would normally come in.  However, that can be
 avoided. Add a catch-all route to the routing table after all existing
 <code>MapRoute</code> calls in <code>RouteConfig.cs</code>:</p>
-<div class="highlight"><pre><span class="n">routes</span><span class="p">.</span><span class="n">MapRoute</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><span class="n">routes</span><span class="p">.</span><span class="n">MapRoute</span><span class="p">(</span>
     <span class="n">name</span><span class="p">:</span> <span class="s">&quot;404&quot;</span><span class="p">,</span>
     <span class="n">url</span><span class="p">:</span> <span class="s">&quot;{*url}&quot;</span><span class="p">,</span>
     <span class="n">defaults</span><span class="p">:</span> <span class="k">new</span> <span class="p">{</span> <span class="n">controller</span> <span class="p">=</span> <span class="s">&quot;Error&quot;</span><span class="p">,</span> <span class="n">action</span> <span class="p">=</span> <span class="s">&quot;CatchAllAction&quot;</span> <span class="p">}</span>
@@ -344,7 +344,7 @@ manner, and don't worry about how it will be resolved down the road!.</p></div>
 <div class="container">
 	<div class="row">
 		<div class="col-md-12 text-center center-block aw-bottom">
-			<p>&copy; Brandon Waskiewicz 2014</p>
+            <p>&copy; Brandon Waskiewicz 2018</p>
             <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a>. Theme by <a href="http://blog.aboutwilson.net/">Wilson Freitas</a>.</p>
 		</div>
 	</div>

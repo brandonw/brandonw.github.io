@@ -70,7 +70,7 @@ template with a context containing:</p>
 <li>a sort constraint <code>sort</code> (paired with the GET parameter of <code>sort</code>)</li>
 </ul>
 <p>then:</p>
-<div class="highlight"><pre><span class="x">&lt;a href=&quot;?page=</span><span class="cp">{{</span> <span class="nv">page_obj.next_page_number</span> <span class="cp">}}</span><span class="x">&amp;filter=</span><span class="cp">{{</span> <span class="nv">filter</span> <span class="cp">}}</span><span class="x">&amp;sort=</span><span class="cp">{{</span> <span class="nv">sort</span> <span class="cp">}}</span><span class="x">&quot;&gt;</span>
+<div class="highlight"><pre><span></span><span class="x">&lt;a href=&quot;?page=</span><span class="cp">{{</span> <span class="nv">page_obj.next_page_number</span> <span class="cp">}}</span><span class="x">&amp;filter=</span><span class="cp">{{</span> <span class="nv">filter</span> <span class="cp">}}</span><span class="x">&amp;sort=</span><span class="cp">{{</span> <span class="nv">sort</span> <span class="cp">}}</span><span class="x">&quot;&gt;</span>
 <span class="x">    next</span>
 <span class="x">&lt;/a&gt;</span>
 </pre></div>
@@ -92,7 +92,7 @@ included in the <code>INSTALLED_APPS</code> config tuple.</p>
 the <code>__init__.py</code> file, and then start a new file named
 <code>foo_extras.py</code>, where <code>foo</code> is the app name. Start the template tag
 off with:</p>
-<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">template</span>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">template</span>
 
 <span class="n">register</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Library</span><span class="p">()</span>
 </pre></div>
@@ -103,15 +103,15 @@ off with:</p>
 <p>Template tags generally require a bit of boilerplate that does not change much
 across all tags. Make a decorator that reduces the need to worry about this
 boilerplate:</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">easy_tag</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">easy_tag</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">())</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">template</span><span class="o">.</span><span class="n">TemplateSyntaxError</span><span class="p">(</span>
-                <span class="s">&#39;Bad arguments for tag &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">inner</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__name__</span>
-    <span class="n">inner</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__doc__</span>
+                <span class="s1">&#39;Bad arguments for tag &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">inner</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">inner</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span>
     <span class="k">return</span> <span class="n">inner</span>
 </pre></div>
 
@@ -126,12 +126,12 @@ the entire tag into space delimited pieces. Note that <code>split_contents</code
 used, which takes care to keep quoted strings as a single item (as opposed to
 <code>split</code> which does not).</p>
 <p>For example, if the template were to call a test tag:</p>
-<div class="highlight"><pre><span class="cp">{%</span> <span class="k">test</span> <span class="nv">foo</span> <span class="s2">&quot;bar baz&quot;</span> <span class="nv">foo</span> <span class="cp">%}</span><span class="x"></span>
+<div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">test</span> <span class="nv">foo</span> <span class="s2">&quot;bar baz&quot;</span> <span class="nv">foo</span> <span class="cp">%}</span><span class="x"></span>
 </pre></div>
 
 
 <p>And a template tag was defined as:</p>
-<div class="highlight"><pre><span class="nd">@register.tag</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><span class="nd">@register.tag</span><span class="p">()</span>
 <span class="nd">@easy_tag</span>
 <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">tag_name</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="n">arg3</span><span class="p">):</span>
     <span class="o">...</span>
@@ -140,7 +140,7 @@ used, which takes care to keep quoted strings as a single item (as opposed to
 
 <p>Then the <code>test</code> function would be wrapped in the easy_tag call. The
 easy_tag decorator would handle splitting the args into the pieces</p>
-<div class="highlight"><pre><span class="p">[</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;&quot;bar baz&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;bar baz&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;foo&#39;</span><span class="p">]</span>
 </pre></div>
 
 
@@ -160,11 +160,11 @@ created by the decorator in order to keep everything consistent.</p>
 object is what must be be returned when registering a template tag via
 <code>register.tag</code>. The Node object requires two methods: <code>__init__</code> and
 <code>render</code>. The first step will be to create the <code>__init__</code> method:</p>
-<div class="highlight"><pre><span class="k">class</span> <span class="nc">AppendGetNode</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AppendGetNode</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
-            <span class="n">pair</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">):</span>
+            <span class="n">pair</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span><span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 
@@ -181,17 +181,17 @@ request.</p>
 <p>The <code>render</code> method is the other required method of the <code>Node</code> instance.
 It will handle the final creation of the string that will be returned as the
 output of the tag.</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-    <span class="n">get</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="n">get</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span><span class="p">:</span>
         <span class="n">get</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
-    <span class="n">path</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">META</span><span class="p">[</span><span class="s">&#39;PATH_INFO&#39;</span><span class="p">]</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">META</span><span class="p">[</span><span class="s1">&#39;PATH_INFO&#39;</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">get</span><span class="p">):</span>
-        <span class="n">path</span> <span class="o">+=</span> <span class="s">&quot;?</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;&amp;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="p">[</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">get</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span><span class="p">])</span>
+        <span class="n">path</span> <span class="o">+=</span> <span class="s2">&quot;?</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;&amp;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">get</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">path</span>
 </pre></div>
@@ -207,7 +207,7 @@ any items, they are appended to the path to return the new request.</p>
 <h3>Final Touches</h3>
 <p>The final step to implement the template tag is to create a function that
 the decorators can be applied to. This will be the entry point of the tag.</p>
-<div class="highlight"><pre><span class="nd">@register.tag</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><span class="nd">@register.tag</span><span class="p">()</span>
 <span class="nd">@easy_tag</span>
 <span class="k">def</span> <span class="nf">append_to_get</span><span class="p">(</span><span class="n">tag_name</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">AppendGetNode</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
@@ -234,7 +234,7 @@ The <code>append_to_get</code> method itself merely creates the <code>template.N
 subclass.</p>
 <h3>The Final Product</h3>
 <p>Putting everything together, this is what the final product looks like:</p>
-<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">template</span>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">template</span>
 
 <span class="n">register</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Library</span><span class="p">()</span>
 
@@ -249,30 +249,30 @@ subclass.</p>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">())</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">template</span><span class="o">.</span><span class="n">TemplateSyntaxError</span><span class="p">(</span>
-                <span class="s">&#39;Bad arguments for tag &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">inner</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__name__</span>
-    <span class="n">inner</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__doc__</span>
+                <span class="s1">&#39;Bad arguments for tag &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">inner</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">inner</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span>
     <span class="k">return</span> <span class="n">inner</span>
 
 
 <span class="k">class</span> <span class="nc">AppendGetNode</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
-            <span class="n">pair</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">):</span>
+            <span class="n">pair</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span><span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-        <span class="n">get</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">get</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span><span class="p">:</span>
             <span class="n">get</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_pairs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
-        <span class="n">path</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">META</span><span class="p">[</span><span class="s">&#39;PATH_INFO&#39;</span><span class="p">]</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">META</span><span class="p">[</span><span class="s1">&#39;PATH_INFO&#39;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">get</span><span class="p">):</span>
-            <span class="n">path</span> <span class="o">+=</span> <span class="s">&quot;?</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;&amp;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="p">[</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">get</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span><span class="p">])</span>
+            <span class="n">path</span> <span class="o">+=</span> <span class="s2">&quot;?</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;&amp;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">get</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">path</span>
 
@@ -285,14 +285,14 @@ subclass.</p>
 
 <h3>New and Improved</h3>
 <p>With all of the above in place, the repetitive and brittle template from above:</p>
-<div class="highlight"><pre><span class="x">&lt;a href=&quot;?page=</span><span class="cp">{{</span> <span class="nv">page_obj.next_page_number</span> <span class="cp">}}</span><span class="x">&amp;filter=</span><span class="cp">{{</span> <span class="nv">filter</span> <span class="cp">}}</span><span class="x">&amp;sort=</span><span class="cp">{{</span> <span class="nv">sort</span> <span class="cp">}}</span><span class="x">&quot;&gt;</span>
+<div class="highlight"><pre><span></span><span class="x">&lt;a href=&quot;?page=</span><span class="cp">{{</span> <span class="nv">page_obj.next_page_number</span> <span class="cp">}}</span><span class="x">&amp;filter=</span><span class="cp">{{</span> <span class="nv">filter</span> <span class="cp">}}</span><span class="x">&amp;sort=</span><span class="cp">{{</span> <span class="nv">sort</span> <span class="cp">}}</span><span class="x">&quot;&gt;</span>
 <span class="x">    next</span>
 <span class="x">&lt;/a&gt;</span>
 </pre></div>
 
 
 <p>can now be replaced with:</p>
-<div class="highlight"><pre><span class="cp">{%</span> <span class="k">load</span> <span class="nv">foo_extras</span> <span class="cp">%}</span><span class="x"></span>
+<div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">load</span> <span class="nv">foo_extras</span> <span class="cp">%}</span><span class="x"></span>
 <span class="x">&lt;a href=&quot;</span><span class="cp">{%</span> <span class="k">append_to_get</span> <span class="nv">page</span><span class="o">=</span><span class="nv">page_obj.next_page_number</span> <span class="cp">%}</span><span class="x">&quot;&gt;</span>
 <span class="x">    next</span>
 <span class="x">&lt;/a&gt;</span>
@@ -361,7 +361,7 @@ the existing request's parameters without any extra instruction!.</p></div>
 <div class="container">
 	<div class="row">
 		<div class="col-md-12 text-center center-block aw-bottom">
-			<p>&copy; Brandon Waskiewicz 2014</p>
+            <p>&copy; Brandon Waskiewicz 2018</p>
             <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a>. Theme by <a href="http://blog.aboutwilson.net/">Wilson Freitas</a>.</p>
 		</div>
 	</div>
